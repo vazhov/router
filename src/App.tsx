@@ -1,25 +1,48 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import AppRouter from './AppRouter';
+import { AuthContext } from './context/index'
 
 function App() {
+  
+  const fakeAuthProvider = {
+    isAuthenticated: false,
+    signin(callback: VoidFunction) {
+      fakeAuthProvider.isAuthenticated = true;
+      setTimeout(callback, 100); // fake async
+    },
+    signout(callback: VoidFunction) {
+      fakeAuthProvider.isAuthenticated = false;
+      setTimeout(callback, 100);
+    }
+  };
+
+  function AuthProvider({ children }: { children: React.ReactNode }) {
+    let [user, setUser] = React.useState<any>(null);
+  
+    let signin = (newUser: string, callback: VoidFunction) => {
+      return fakeAuthProvider.signin(() => {
+        setUser(newUser);
+        callback();
+      });
+    };
+  
+    let signout = (callback: VoidFunction) => {
+      return fakeAuthProvider.signout(() => {
+        setUser(null);
+        callback();
+      });
+    };
+  
+    let value = { user, signin, signout };
+    
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  }
+ 
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
 
